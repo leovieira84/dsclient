@@ -11,6 +11,7 @@ import br.com.leovieira.dsclient.dto.ClientDTO;
 import br.com.leovieira.dsclient.entities.Client;
 import br.com.leovieira.dsclient.repositories.ClientRepository;
 import br.com.leovieira.dsclient.services.exceptions.ResourceNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class ClientService {
@@ -38,15 +39,25 @@ public class ClientService {
 	
 	@Transactional
 	public ClientDTO update(Long id, ClientDTO dto) {
-		Client client = repository.getReferenceById(id);
-		copyDtoToEntity(dto, client);
-		repository.save(client);
-		return new ClientDTO(client);
+		try {
+			Client client = repository.getReferenceById(id);
+			copyDtoToEntity(dto, client);
+			repository.save(client);
+			return new ClientDTO(client);
+		} catch (EntityNotFoundException e) {
+			throw new ResourceNotFoundException();
+		}
 	}
 	
 	@Transactional(propagation = Propagation.SUPPORTS)
 	public void delete(Long id) {
-		repository.deleteById(id);
+		if(!repository.existsById(id)) throw new ResourceNotFoundException();
+		
+		try {
+			repository.deleteById(id);
+		} catch (EntityNotFoundException e) {
+			throw new ResourceNotFoundException();
+		}
 	}
 
 	private void copyDtoToEntity(ClientDTO dto, Client client) {
