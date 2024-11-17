@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.leovieira.dsclient.dto.ClientDTO;
 import br.com.leovieira.dsclient.entities.Client;
 import br.com.leovieira.dsclient.repositories.ClientRepository;
+import br.com.leovieira.dsclient.services.exceptions.ResourceNotFoundException;
 
 @Service
 public class ClientService {
@@ -18,7 +19,7 @@ public class ClientService {
 	
 	@Transactional(readOnly = true)
 	public ClientDTO findById(Long id) {
-		return new ClientDTO(repository.findById(id).get()) ;
+		return new ClientDTO(repository.findById(id).orElseThrow(() -> new ResourceNotFoundException()));
 	}
 	
 	@Transactional(readOnly = true)
