@@ -1,8 +1,11 @@
 package br.com.leovieira.dsclient.controllers;
 
+import java.net.URI;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,6 +14,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.leovieira.dsclient.dto.ClientDTO;
 import br.com.leovieira.dsclient.services.ClientService;
@@ -22,28 +26,36 @@ public class ClientController {
 	ClientService service;
 	
 	@GetMapping
-	public Page<ClientDTO> allClients(Pageable pageable){
-		return service.findAll(pageable);
+	public ResponseEntity<Page<ClientDTO>> allClients(Pageable pageable){
+		return ResponseEntity.ok().body(service.findAll(pageable));
 	}
 	
 	@GetMapping("/{id}")
-	public ClientDTO clientById(@PathVariable Long id) {
-		return service.findById(id);
+	public ResponseEntity<ClientDTO> clientById(@PathVariable Long id) {
+		ClientDTO dto = service.findById(id);
+		return ResponseEntity.ok(dto);
 	}
 	
 	@PostMapping
-	public ClientDTO saveClient(@RequestBody ClientDTO dto) {
-		return service.insert(dto);
+	public ResponseEntity<ClientDTO> saveClient(@RequestBody ClientDTO dto) {
+		dto = service.insert(dto);
+		
+		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+				.buildAndExpand(dto.getId()).toUri();
+		
+		return ResponseEntity.created(uri).body(dto);
 	}
 	
 	@PutMapping("/{id}")
-	public ClientDTO updateClient(@PathVariable Long id, @RequestBody ClientDTO dto) {
-		return service.update(id, dto);
+	public ResponseEntity<ClientDTO> updateClient(@PathVariable Long id, @RequestBody ClientDTO dto) {
+		return ResponseEntity.ok(service.update(id, dto));
 	}
 	
 	@DeleteMapping("/{id}")
-	public void deleteClient(@PathVariable Long id) {
+	public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
 		service.delete(id);
+		
+		return ResponseEntity.noContent().build();
 	}
 	
 }
